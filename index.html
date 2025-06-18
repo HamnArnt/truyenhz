@@ -1,0 +1,715 @@
+`web-truyen-tranh.html`
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web Truyện Tranh - Đọc Truyện Tranh Online</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  /* Reset & base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #4ade80);
+    color: #f9fafb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(255 255 255 / 0.1);
+    backdrop-filter: blur(12px);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 100;
+  }
+  header .logo {
+    font-weight: 700;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+    color: #e0e7ff;
+    user-select: none;
+  }
+  nav {
+    margin-left: auto;
+    display: flex;
+    gap: 24px;
+  }
+  nav a {
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  nav a:hover,
+  nav a:focus {
+    background: rgba(226,232,240,0.3);
+    outline: none;
+  }
+  /* Layout */
+  .container {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 64px - 48px);
+    background: rgba(255 255 255 / 0.1);
+    backdrop-filter: blur(10px);
+    margin: 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  /* Sidebar */
+  aside.sidebar {
+    width: 280px;
+    background: rgba(255 255 255 / 0.07);
+    border-right: 1px solid rgba(255 255 255 / 0.15);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+  }
+  .sidebar h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #c7d2fe;
+  }
+  ul.category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  ul.category-list li {
+    margin-bottom: 12px;
+  }
+  ul.category-list li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    font-size: 1rem;
+    color: #c7d2fe;
+    transition: color 0.2s ease;
+  }
+  ul.category-list li a .material-icons {
+    font-size: 20px;
+    color: #a5b4fc;
+  }
+  ul.category-list li a:hover,
+  ul.category-list li a:focus {
+    color: #eef2ff;
+    outline: none;
+  }
+  /* Main content */
+  main.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  main.content h1 {
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 900;
+    margin-bottom: 24px;
+    color: #eef2ff;
+  }
+  /* Search bar */
+  .search-bar {
+    position: relative;
+    margin-bottom: 24px;
+    max-width: 480px;
+  }
+  .search-bar input[type="search"] {
+    width: 100%;
+    padding: 12px 48px 12px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    background: rgba(255 255 255 / 0.15);
+    color: #eef2ff;
+    transition: background-color 0.3s ease;
+  }
+  .search-bar input[type="search"]::placeholder {
+    color: #a5b4fc;
+  }
+  .search-bar input[type="search"]:focus {
+    outline: none;
+    background: rgba(255 255 255 / 0.3);
+  }
+  .search-bar .material-icons {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a5b4fc;
+    pointer-events: none;
+  }
+  /* Comic list */
+  .comic-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+    gap: 24px;
+  }
+  .comic-card {
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .comic-card:hover,
+  .comic-card:focus-within {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 36px rgba(99,102,241,0.5);
+    outline: none;
+  }
+  .comic-card img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .comic-info {
+    padding: 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .comic-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #eef2ff;
+    flex-grow: 1;
+  }
+  .comic-description {
+    font-size: 0.9rem;
+    color: #c7d2fe;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 3.9em;
+  }
+  /* Footer */
+  footer {
+    height: 48px;
+    background: rgba(255 255 255 / 0.12);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a5b4fc;
+    user-select: none;
+    font-size: 0.875rem;
+  }
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255 255 255 / 0.2);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255 255 255 / 0.5);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* Responsive */
+  @media (max-width: 767px) {
+    .container {
+      flex-direction: column;
+      margin: 16px;
+      min-height: auto;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+    aside.sidebar {
+      width: 100%;
+      order: 2;
+      padding: 16px 12px;
+      border-right: none;
+      border-top: 1px solid rgba(255 255 255 / 0.15);
+    }
+    main.content {
+      padding: 16px 12px;
+      order: 1;
+      min-height: auto;
+    }
+    .comic-card img {
+      height: 240px;
+    }
+  }
+</style>
+</head>
+<body>
+<header role="banner">
+  <div class="logo" tabindex="0">Truyện Tranh Online</div>
+  <nav role="navigation" aria-label="Primary navigation">
+    <a href="#" tabindex="0">Trang Chủ</a>
+    <a href="#" tabindex="0">Thể Loại</a>
+    <a href="#" tabindex="0">Bảng Xếp Hạng</a>
+    <a href="#" tabindex="0">Liên Hệ</a>
+  </nav>
+</header>
+
+<div class="container">
+  <aside class="sidebar" role="complementary" aria-label="Danh mục thể loại truyện tranh">
+    <h2>Thể Loại</h2>
+    <ul class="category-list">
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">sports_esports</span> Action</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">sentiment_satisfied</span> Comedy</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">psychology</span> Drama</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">auto_fix_high</span> Fantasy</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">heart_broken</span> Romance</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">nightlight</span> Horror</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">light_mode</span> Slice of Life</a></li>
+    </ul>
+  </aside>
+
+  <main class="content" role="main">
+    <h1 tabindex="0">Truyện Tranh Mới Nhất</h1>
+    <div class="search-bar" role="search">
+      <input type="search" placeholder="Tìm kiếm truyện..." aria-label="Search comic" />
+      <span class="material-icons" aria-hidden="true">search</span>
+    </div>
+    <section class="comic-list" aria-label="Danh sách truyện tranh">
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="Truyện Thám Tử Lừng Danh Conan">
+        <img src="https://placehold.co/320x180/6366f1/ffffff?text=Thám+Tử+Lừng+Danh+Conan" alt="Bìa truyện Thám Tử Lừng Danh Conan với hình ảnh nhân vật chính" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">Thám Tử Lừng Danh Conan</h3>
+          <p class="comic-description">Theo chân thám tử nhí Conan khám phá những vụ án ly kỳ và hấp dẫn, hồi hộp suốt từng trang truyện.</p>
+        </div>
+      </article>
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="One Piece - Hành Trình Tìm Kho Báu">
+        <img src="https://placehold.co/320x180/4ade80/ffffff?text=One+Piece" alt="Bìa truyện One Piece với biểu tượng chân trời kho báu" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">One Piece</h3>
+          <p class="comic-description">Phiêu lưu cùng băng hải tặc Mũ Rơm trên hành trình tìm kiếm kho báu huyền thoại One Piece.</p>
+        </div>
+      </article>
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="Naruto - Hành Trình Ninja">
+        <img src="https://placehold.co/320x180/22c55e/ffffff?text=Naruto" alt="Bìa truyện Naruto thể hiện nhân vật chính với phong cách ninja" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">Naruto</h3>
+          <p class="comic-description">Câu chuyện về cậu bé ninja Naruto với ước mơ trở thành Hokage và hành trình trưởng thành đầy thử thách.</p>
+        </div>
+      </article>
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="Dragon Ball Super - Sức Mạnh Vô Hạn">
+        <img src="https://placehold.co/320x180/22d3ee/000000?text=Dragon+Ball+Super" alt="Bìa truyện Dragon Ball Super với các nhân vật chiến đấu" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">Dragon Ball Super</h3>
+          <p class="comic-description">Chiến đấu không ngừng nghỉ của Goku và bạn bè để bảo vệ vũ trụ trước các đối thủ hùng mạnh.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
+
+<footer role="contentinfo">
+  © 2024 Web Truyện Tranh - Đọc Truyện Online Miễn Phí
+</footer>
+
+<script>
+  // Search functionality - simple client-side filter
+  const searchInput = document.querySelector('.search-bar input[type="search"]');
+  const comics = document.querySelectorAll('.comic-card');
+
+  searchInput.addEventListener('input', e => {
+    const val = e.target.value.trim().toLowerCase();
+    comics.forEach(card => {
+      const title = card.querySelector('.comic-title').textContent.toLowerCase();
+      const desc = card.querySelector('.comic-description').textContent.toLowerCase();
+      if (title.includes(val) || desc.includes(val)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+</script>
+</body>
+</html>
+
+```
+
+🎨 **Generating images based on descriptions...**
+
+✅ **Images generated successfully! Here's your updated content:**
+
+`web-truyen-tranh.html`
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web Truyện Tranh - Đọc Truyện Tranh Online</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  /* Reset & base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #4ade80);
+    color: #f9fafb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(255 255 255 / 0.1);
+    backdrop-filter: blur(12px);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 100;
+  }
+  header .logo {
+    font-weight: 700;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+    color: #e0e7ff;
+    user-select: none;
+  }
+  nav {
+    margin-left: auto;
+    display: flex;
+    gap: 24px;
+  }
+  nav a {
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  nav a:hover,
+  nav a:focus {
+    background: rgba(226,232,240,0.3);
+    outline: none;
+  }
+  /* Layout */
+  .container {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 64px - 48px);
+    background: rgba(255 255 255 / 0.1);
+    backdrop-filter: blur(10px);
+    margin: 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  /* Sidebar */
+  aside.sidebar {
+    width: 280px;
+    background: rgba(255 255 255 / 0.07);
+    border-right: 1px solid rgba(255 255 255 / 0.15);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+  }
+  .sidebar h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #c7d2fe;
+  }
+  ul.category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  ul.category-list li {
+    margin-bottom: 12px;
+  }
+  ul.category-list li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    font-size: 1rem;
+    color: #c7d2fe;
+    transition: color 0.2s ease;
+  }
+  ul.category-list li a .material-icons {
+    font-size: 20px;
+    color: #a5b4fc;
+  }
+  ul.category-list li a:hover,
+  ul.category-list li a:focus {
+    color: #eef2ff;
+    outline: none;
+  }
+  /* Main content */
+  main.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  main.content h1 {
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 900;
+    margin-bottom: 24px;
+    color: #eef2ff;
+  }
+  /* Search bar */
+  .search-bar {
+    position: relative;
+    margin-bottom: 24px;
+    max-width: 480px;
+  }
+  .search-bar input[type="search"] {
+    width: 100%;
+    padding: 12px 48px 12px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    background: rgba(255 255 255 / 0.15);
+    color: #eef2ff;
+    transition: background-color 0.3s ease;
+  }
+  .search-bar input[type="search"]::placeholder {
+    color: #a5b4fc;
+  }
+  .search-bar input[type="search"]:focus {
+    outline: none;
+    background: rgba(255 255 255 / 0.3);
+  }
+  .search-bar .material-icons {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a5b4fc;
+    pointer-events: none;
+  }
+  /* Comic list */
+  .comic-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+    gap: 24px;
+  }
+  .comic-card {
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .comic-card:hover,
+  .comic-card:focus-within {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 36px rgba(99,102,241,0.5);
+    outline: none;
+  }
+  .comic-card img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .comic-info {
+    padding: 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .comic-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #eef2ff;
+    flex-grow: 1;
+  }
+  .comic-description {
+    font-size: 0.9rem;
+    color: #c7d2fe;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 3.9em;
+  }
+  /* Footer */
+  footer {
+    height: 48px;
+    background: rgba(255 255 255 / 0.12);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a5b4fc;
+    user-select: none;
+    font-size: 0.875rem;
+  }
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255 255 255 / 0.2);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255 255 255 / 0.5);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* Responsive */
+  @media (max-width: 767px) {
+    .container {
+      flex-direction: column;
+      margin: 16px;
+      min-height: auto;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+    aside.sidebar {
+      width: 100%;
+      order: 2;
+      padding: 16px 12px;
+      border-right: none;
+      border-top: 1px solid rgba(255 255 255 / 0.15);
+    }
+    main.content {
+      padding: 16px 12px;
+      order: 1;
+      min-height: auto;
+    }
+    .comic-card img {
+      height: 240px;
+    }
+  }
+</style>
+</head>
+<body>
+<header role="banner">
+  <div class="logo" tabindex="0">Truyện Tranh Online</div>
+  <nav role="navigation" aria-label="Primary navigation">
+    <a href="#" tabindex="0">Trang Chủ</a>
+    <a href="#" tabindex="0">Thể Loại</a>
+    <a href="#" tabindex="0">Bảng Xếp Hạng</a>
+    <a href="#" tabindex="0">Liên Hệ</a>
+  </nav>
+</header>
+
+<div class="container">
+  <aside class="sidebar" role="complementary" aria-label="Danh mục thể loại truyện tranh">
+    <h2>Thể Loại</h2>
+    <ul class="category-list">
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">sports_esports</span> Action</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">sentiment_satisfied</span> Comedy</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">psychology</span> Drama</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">auto_fix_high</span> Fantasy</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">heart_broken</span> Romance</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">nightlight</span> Horror</a></li>
+      <li><a href="#" tabindex="0"><span class="material-icons" aria-hidden="true">light_mode</span> Slice of Life</a></li>
+    </ul>
+  </aside>
+
+  <main class="content" role="main">
+    <h1 tabindex="0">Truyện Tranh Mới Nhất</h1>
+    <div class="search-bar" role="search">
+      <input type="search" placeholder="Tìm kiếm truyện..." aria-label="Search comic" />
+      <span class="material-icons" aria-hidden="true">search</span>
+    </div>
+    <section class="comic-list" aria-label="Danh sách truyện tranh">
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="Truyện Thám Tử Lừng Danh Conan">
+        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/47adeff5-0304-45e2-a4bb-d954f3a26963.png" alt="Bìa truyện Thám Tử Lừng Danh Conan với hình ảnh nhân vật chính" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">Thám Tử Lừng Danh Conan</h3>
+          <p class="comic-description">Theo chân thám tử nhí Conan khám phá những vụ án ly kỳ và hấp dẫn, hồi hộp suốt từng trang truyện.</p>
+        </div>
+      </article>
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="One Piece - Hành Trình Tìm Kho Báu">
+        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c707c358-2407-4e57-9149-00eb0399f7d2.png" alt="Bìa truyện One Piece với biểu tượng chân trời kho báu" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">One Piece</h3>
+          <p class="comic-description">Phiêu lưu cùng băng hải tặc Mũ Rơm trên hành trình tìm kiếm kho báu huyền thoại One Piece.</p>
+        </div>
+      </article>
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="Naruto - Hành Trình Ninja">
+        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/400fc83c-4dc2-41fa-b14e-9c102783de08.png" alt="Bìa truyện Naruto thể hiện nhân vật chính với phong cách ninja" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">Naruto</h3>
+          <p class="comic-description">Câu chuyện về cậu bé ninja Naruto với ước mơ trở thành Hokage và hành trình trưởng thành đầy thử thách.</p>
+        </div>
+      </article>
+      <article class="comic-card" tabindex="0" role="listitem" aria-label="Dragon Ball Super - Sức Mạnh Vô Hạn">
+        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/018b92f6-631f-4d08-9bdb-05ef032c5c3a.png" alt="Bìa truyện Dragon Ball Super với các nhân vật chiến đấu" loading="lazy" />
+        <div class="comic-info">
+          <h3 class="comic-title">Dragon Ball Super</h3>
+          <p class="comic-description">Chiến đấu không ngừng nghỉ của Goku và bạn bè để bảo vệ vũ trụ trước các đối thủ hùng mạnh.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
+
+<footer role="contentinfo">
+  © 2024 Web Truyện Tranh - Đọc Truyện Online Miễn Phí
+</footer>
+
+<script>
+  // Search functionality - simple client-side filter
+  const searchInput = document.querySelector('.search-bar input[type="search"]');
+  const comics = document.querySelectorAll('.comic-card');
+
+  searchInput.addEventListener('input', e => {
+    const val = e.target.value.trim().toLowerCase();
+    comics.forEach(card => {
+      const title = card.querySelector('.comic-title').textContent.toLowerCase();
+      const desc = card.querySelector('.comic-description').textContent.toLowerCase();
+      if (title.includes(val) || desc.includes(val)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+</script>
+</body>
+</html>
+
+```
